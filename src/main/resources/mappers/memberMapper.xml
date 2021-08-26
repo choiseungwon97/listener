@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.mis.mapper.MemberMapper">
+
+   <select id="login" resultType="com.mis.domain.MemberVO">
+      SELECT ID, PW, NAME, NICKNAME, STID, MAJOR,BIRTH, PH, ADDRESS,
+      MEMBERSESSION, WHY, LIKEGENRE, ARTIST, GRADE
+      FROM
+      TBL_MEMBER
+      WHERE ID = #{id} AND PW = #{pw}
+   </select>
+
+
+   <insert id="create">
+      insert into tbl_member (ID, PW, NAME, NICKNAME, STID, MAJOR,BIRTH, PH,
+      ADDRESS, MEMBERSESSION, WHY, LIKEGENRE, ARTIST)
+      VALUES (#{id}, #{pw}, #{name}, #{nickname},
+      #{stid},#{major},#{birth},#{ph},#{address},#{memberSession},#{why},#{likeGenre},#{artist})
+   </insert>
+
+   <!-- 회원가입 유효성검사 -->
+   <select id="checkId" resultType="int">
+      SELECT COUNT(*)
+      FROM
+      TBL_MEMBER
+      WHERE id = #{id}
+   </select>
+
+   <!-- 마이페이지 -->
+   <select id="myInfo" resultType="com.mis.domain.MemberVO"> select id, pw, name, nickname,
+      stid, major, birth, ph, address, membersession, why, likegenre,
+      artist,grade from tbl_member where id = #{id} </select>
+   <!-- 마이페이지 수정 -->
+   <update id="myInfoUpdate"> update tbl_member set pw =#{pw},name
+      =#{name},nickname =#{nickname},stid =#{stid} , major =#{major}, birth
+      =#{birth},ph =#{ph}, address =#{address},membersession
+      =#{memberSession},why =#{why},likegenre =#{likeGenre},artist
+      =#{artist} where id = #{id} </update>
+
+</mapper>

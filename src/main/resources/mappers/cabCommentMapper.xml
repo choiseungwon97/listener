@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+
+<mapper namespace="com.mis.mapper.CabCommentMapper">
+
+	<select id="list" resultType="com.mis.domain.CabCommentVO">
+
+		select c.cabcomm_no, c.cab_no,
+		m.id,
+		m.nickname,
+		c.content,
+		c.regdate
+		from
+		tbl_cabcomment c, tbl_ciract_board i,
+		tbl_member m
+		where
+		m.id = c.id
+		and i.cab_no = c.cab_no
+		and c.cab_no =
+		#{cabNo}
+
+		order by c.cabcomm_no desc
+
+
+
+	</select>
+
+
+	<insert id="create">
+
+		insert into tbl_cabcomment(cabcomm_no,content, regdate, id, cab_no)
+		values
+		(CABCOMM_SEQ.NEXTVAL, #{content}, sysdate, #{id}, #{cabNo})
+
+
+	</insert>
+
+	<delete id="delete">
+		delete from tbl_cabcomment
+		where CABCOMM_NO = #{cabCommNo}
+
+	</delete>
+
+	<delete id="deleteAll">
+		DELETE FROM TBL_cabcomment
+		WHERE cab_no = #{cabNo}
+	</delete>
+
+</mapper>
+ 

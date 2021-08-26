@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.mis.mapper.CabMapper">
+
+
+	<insert id="create">
+	<selectKey keyProperty="cabNo" resultType="int" order="BEFORE">
+			SELECT CAB_SEQ.NEXTVAL FROM DUAL
+		</selectKey>
+		
+		INSERT INTO TBL_CIRACT_BOARD (CAB_NO, TITLE, CONTENT,
+		YOUTUBELINK, ID)
+		VALUES
+		(#{cabNo}, #{title}, #{content},
+		#{youtubeLink}, #{id})
+	</insert>
+
+
+	<select id="read" resultType="com.mis.domain.CiractBoardVO">
+      SELECT c.CAB_NO, c.TITLE, c.CONTENT,
+      c.REGDATE, c.VIEWCNT,
+      c.YOUTUBELINK, c.ID, m.NICKNAME 
+      FROM TBL_CIRACT_BOARD c, TBL_MEMBER m WHERE c.ID = M.ID
+      AND CAB_NO = #{cabNo}
+   </select>
+
+	<update id="update">
+		UPDATE TBL_CIRACT_BOARD SET TITLE =#{title}, CONTENT
+		=#{content}, YOUTUBELINK = #{youtubeLink}
+		WHERE CAB_NO = #{cabNo}
+
+	</update>
+
+	<delete id="delete">
+		DELETE FROM TBL_CIRACT_BOARD WHERE CAB_NO = #{cabNo}
+
+	</delete>
+
+
+	<sql id="search">
+		<if test="searchType != null">
+			<if test="searchType == 't'.toString()">
+				and title like '%' || #{keyword} || '%'
+			</if>
+			<if test="searchType == 'c'.toString()">
+				and content like '%' || #{keyword} || '%'
+			</if>
+			<if test="searchType == 'n'.toString()">
+				and nickname like '%' || #{keyword} || '%'
+			</if>
+			<if test="searchType == 'tc'.toString()">
+				and (title like '%' || #{keyword} || '%')
+				OR
+				(content like
+				'%' || #{keyword} || '%')
+			</if>
+			<if test="searchType == 'cn'.toString()">
+				and (content like '%' || #{keyword} || '%')
+				OR
+				(nickname
+				like
+				'%' || #{keyword} || '%')
+			</if>
+			<if test="searchType == 'tcn'.toString()">
+				and (title like '%' || #{keyword} || '%')
+				OR
+				(content like
+				'%' || #{keyword} || '%')
+				OR
+				(nickname like '%' || #{keyword} || '%')
+			</if>
+
+
+
+		</if>
+
+
+	</sql>
+
+
+
+	<select id="listSearch"
+		resultType="com.mis.domain.CiractBoardVO"> 
+
+	<![CDATA[
+	SELECT * FROM (
+    	SELECT rownum rnum, cab_no, title, content, regdate, viewcnt, id, nickname from (
+   			SELECT c.cab_no, c.title, c.content, c.regdate, c.viewcnt, c.id, m.nickname
+   			FROM
+   			tbl_ciract_board c INNER JOIN tbl_member m ON c.id = m.id
+   			WHERE cab_no > 0
+	]]>
+	<include refid="search"></include>
+	
+	<![CDATA[
+	order by cab_no desc ))
+	where rnum >= #{pageStart} AND rnum <= #{pageEnd}
+   	order by cab_no desc
+	]]>
+	</select>
+
+
+	<select id="listSearchCount" resultType="int">
+
+	<![CDATA[
+   SELECT COUNT(cab_no)
+   	FROM
+   	TBL_CIRACT_BOARD c, TBL_MEMBER m
+   	WHERE c.ID = m.ID
+   	AND CAB_NO > 0
+   	]]>
+		<include refid="search"></include>
+
+
+	</select>
+
+	<select id="updateViewCount" resultType="int">
+	
+	<![CDATA[
+   UPDATE TBL_CIRACT_BOARD
+   SET VIEWCNT = VIEWCNT + 1
+   WHERE CAB_NO = #{cab_no}
+   	]]>
+
+	</select>
+	
+	<!-- 다중 파일 등록 -->
+	<insert id="insertFile">
+		INSERT INTO TBL_CABFILE
+		(CABFILE_NO
+		,FILENAME
+		,CAB_NO)
+		VALUES
+		(CABFILE_SEQ.NEXTVAL
+		,#{filename}
+		,#{cabNo})
+	</insert>
+
+
+	<!-- 다중 파일 삭제 -->
+	<insert id="deleteFile">
+		DELETE FROM TBL_CABFILE
+		WHERE CAB_NO=
+		#{cabNo}
+	</insert>
+
+
+	<!-- 파일 목록 -->
+	<select id="fileList" resultType="com.mis.domain.CabFileVO">
+		SELECT
+		CABFILE_NO
+		,SUBSTR(FILENAME, 50) AS FILENAME
+		,FILENAME AS FILE_LOCATION
+		,CAB_NO
+		FROM
+		TBL_CABFILE
+		WHERE
+		CAB_NO = #{cabNo}
+	</select>
+
+
+
+
+
+
+
+
+
+
+
+
+</mapper>

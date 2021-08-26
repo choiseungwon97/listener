@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.mis.mapper.MemberTeamMapper">
+
+
+
+
+   <!-- 1. 학생 :: 진로 선택 팝업창 -> 진로명 검생 결과 페이지 -->
+   <select id="searchTeam" resultType="com.mis.domain.TeamVO">
+      SELECT TEAM_NO 
+      , Team_NAME
+      FROM
+      TBL_TEAM
+      WHERE UPPER(TEAM_NAME)
+      LIKE UPPER('%'||REPLACE(''||
+      #{teamName}|| '', ' ',
+      '')||'%')
+
+   </select>
+
+
+   <!-- 2. 학생 :: myPage/myScore -> 진로 목록 팝업창 -->
+   <select id="teamList" resultType="com.mis.domain.TeamVO">
+<![CDATA[
+      SELECT TEAM_NO, TEAM_NAME, CAPTAIN, CAPTAINPH
+      FROM TBL_TEAM
+      WHERE TEAM_NO NOT IN (SELECT TEAM_NO FROM TBL_Member_Team where ID = #{id})
+      AND TEAM_NO >= 0
+      ORDER BY TEAM_NAME
+]]>
+   </select>
+
+   <!--3. 학생 :: 선택한 진로 목록 -->
+   <select id="everyMtList" resultType="com.mis.domain.MemberTeamVO">
+      SELECT
+      MT.MT_NO,
+      T.TEAM_NAME
+      FROM
+      TBL_MEMBER_TEAM MT,
+      TBL_TEAM T
+      WHERE MT.TEAM_NO =
+      T.TEAM_NO
+      AND
+      MT.ID
+      = #{id}
+      ORDER BY T.TEAM_NO DESC
+   </select>
+
+   <!-- 4. 학생 :: myPage/myScore -> 학생 진로 등록 -->
+   <!-- <insert id="create"> INSERT INTO TBL_USCAR (USCAR_NO, USER_NO, CAR_NO) 
+      VALUES(seq_uscar.nextval, #{userNo} , #{carNo}) </insert> -->
+
+   <!-- 4. 학생 :: myPage/myScore -> 학생 진로 등록 -->
+   <insert id="create">
+
+      <!-- <selectKey keyProperty="uscarNo" resultType="int" order="BEFORE"> 
+         SELECT SEQ_APPLY.NEXTVAL FROM DUAL </selectKey> -->
+
+      INSERT INTO TBL_MEMBER_TEAM(MT_NO, ID, TEAM_NO)
+      VALUES(MT_SEQ.NEXTVAL, #{id}, (SELECT TEAM_NO FROM TBL_TEAM
+      WHERE TEAM_NAME = #{teamName}))
+   </insert>
+
+
+
+   <!-- 5. 학생 :: myPage -> 선택한 진로 삭제 -->
+   <delete id="delete">
+      DELETE FROM TBL_MEMBER_TEAM WHERE MT_NO = #{mtNo}
+   </delete>
+   </mapper>

@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.mis.mapper.TeamMapper">
+
+	<insert id="create">
+	<selectKey keyProperty="teamNo" resultType="int" order="BEFORE">
+			SELECT TEAM_SEQ.NEXTVAL FROM DUAL
+		</selectKey>
+		INSERT INTO TBL_TEAM (TEAM_NO,TEAM_NAME, CAPTAIN, CAPTAINPH, GENRE, VOCAL, VOCAL2, GUITAR, GUITAR2, DRUM, BASS, SYNTH, EXTRA, MENTOR, SONG)
+		VALUES (#{teamNo}, #{teamName}, #{captain},#{captainPh}, #{genre}, #{vocal}, #{vocal2}, #{guitar}, #{guitar2}, 
+		#{drum}, #{bass}, #{synth}, #{extra}, #{mentor}, #{song})
+	</insert>
+
+	<select id="read" resultType="com.mis.domain.TeamVO">
+		SELECT
+		TEAM_NO,TEAM_NAME, CAPTAIN, CAPTAINPH, GENRE, VOCAL, VOCAL2, GUITAR, GUITAR2, DRUM, BASS, SYNTH, EXTRA, MENTOR, SONG
+		FROM TBL_TEAM 
+		WHERE TEAM_NO = #{teamNo}
+	</select>
+
+	<update id="update">
+		UPDATE TBL_TEAM SET CAPTAIN = #{captain}, CAPTAINPH = #{captainPh}, GENRE = #{genre}, VOCAL = #{vocal}, VOCAL2 = #{vocal2},
+		GUITAR = #{guitar}, GUITAR2 = #{guitar2}, DRUM = #{drum}, BASS = #{bass}, SYNTH = #{synth}, 
+		EXTRA = #{extra}, MENTOR = #{mentor}, SONG = #{song}
+		WHERE TEAM_NO = #{teamNo}
+	</update>
+
+	<delete id="delete">
+		DELETE FROM TBL_TEAM WHERE TEAM_NO = #{teamNo}
+	</delete>
+
+	<sql id="search">
+		<if test="searchType != null">
+			<if test="searchType == 't'.toString()">
+				and TEAM_NAME like '%' || #{keyword} || '%'
+			</if>
+
+			<if test="searchType == 'c'.toString()">
+				and CAPTAIN like '%' || #{keyword} || '%'
+			</if>
+
+			<if test="searchType == 'g'.toString()"> 
+				and GENRE like '%' || #{keyword} || '%'
+			</if>
+		</if>
+	</sql>
+
+	<select id="listSearch"
+		resultType="com.mis.domain.TeamVO">
+		<![CDATA[
+		SELECT * FROM (
+			SELECT
+				rownum rnum, TEAM_NO,TEAM_NAME, CAPTAIN, CAPTAINPH, GENRE, VOCAL, VOCAL2, GUITAR, GUITAR2, DRUM, 
+				BASS, SYNTH, EXTRA, MENTOR, SONG
+			FROM		
+			 	TBL_TEAM WHERE TEAM_NO > 0
+		]]>
+		<include refid="search"></include>
+		<![CDATA[
+		order by TEAM_NO desc)
+			WHERE (rnum >= #{pageStart} AND rnum <= #{pageEnd})
+		ORDER BY TEAM_NO DESC
+		]]>
+	</select>
+
+	<select id="listSearchCount" resultType="int">
+		<![CDATA[
+		SELECT COUNT(*) FROM TBL_TEAM WHERE TEAM_NO > 0
+		]]>
+		<include refid="search"></include>
+	</select>
+	
+	  
+   
+      <select id="listAll" resultType="com.mis.domain.TeamVO">
+      <!-- CDATA는 닫는 꺽새 기호를 sql문이라고 인지하기 위해 --> 
+   <![CDATA[
+   select 
+       ROWNUM NUM, TEAM_NO, TEAM_NAME
+      FROM TBL_TEAM
+      WHERE TEAM_NO >= 0
+        ORDER BY TEAM_NO DESC
+   ]]>
+   </select>
+
+	
+
+</mapper>

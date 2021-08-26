@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.mis.mapper.FreeBoardMapper">
+
+	<insert id="create">
+	<selectKey keyProperty="fbNo" resultType="int" order="BEFORE">
+			SELECT FB_SEQ.NEXTVAL FROM DUAL
+		</selectKey>
+	
+		INSERT INTO TBL_FREE_BOARD (FB_NO, TITLE, CONTENT, YOUTUBELINK, ID)
+		VALUES (#{fbNo}, #{title}, #{content}, #{youtubeLink}, #{id})
+	</insert>
+
+	<select id="read" resultType="com.mis.domain.FreeBoardVO">
+      SELECT
+      f.FB_NO, f.TITLE, f.CONTENT, f.REGDATE, f.VIEWCNT, f.YOUTUBELINK, f.ID, m.NICKNAME
+      FROM TBL_FREE_BOARD f, TBL_MEMBER m WHERE f.ID = m.ID
+      AND FB_NO = #{fbNo}
+   </select>
+
+	<update id="update">
+		UPDATE TBL_FREE_BOARD SET 
+		TITLE = #{title}, CONTENT = #{content}, YOUTUBELINK = #{youtubeLink}, ID = #{id}
+		WHERE FB_NO = #{fbNo}
+	</update>
+
+	<delete id="delete">
+		DELETE FROM TBL_FREE_BOARD WHERE FB_NO = #{fbNo}
+	</delete>
+
+	<sql id="search">
+		<if test="searchType != null">
+			<if test="searchType == 't'.toString()">
+				and title like '%' || #{keyword} || '%'
+			</if>
+
+			<if test="searchType == 'n'.toString()">
+				and nickname like '%' || #{keyword} || '%'
+			</if>
+
+			<if test="searchType == 'c'.toString()"> 
+				and content like '%' || #{keyword} || '%'
+			</if>
+
+			<if test="searchType == 'tn'.toString()">
+				and (title like '%' || #{keyword} || '%') or
+				(nickname like '%' || #{keyword} || '%')
+			</if>
+
+			<if test="searchType == 'nc'.toString()">
+				and (nickname like '%' || #{keyword} || '%') or
+				(content like '%' || #{keyword} || '%')
+			</if>
+
+			<if test="searchType == 'tnc'.toString()">
+				and (title like '%' || #{keyword} || '%') or
+				(nickname like '%' || #{keyword} || '%') or
+				(content like '%' || #{keyword} || '%')
+			</if>
+		</if>
+	</sql>
+
+	<select id="listSearch" resultType="com.mis.domain.FreeBoardVO">
+      <![CDATA[
+      SELECT * FROM (
+       SELECT rownum rnum, fb_no, title, content, regdate, viewcnt, id, nickname from (
+            SELECT f.fb_no, f.title, f.content, f.regdate, f.viewcnt, f.id, m.nickname
+            FROM
+            tbl_free_board f INNER JOIN tbl_member m ON f.id = m.id
+            WHERE fb_no > 0
+      ]]>
+      <include refid="search"></include>
+      <![CDATA[
+         order by fb_no desc ))
+   where rnum >= #{pageStart} AND rnum <= #{pageEnd}
+      order by fb_no desc
+      ]]>
+   </select>
+
+	<select id="listSearchCount" resultType="int">
+		<![CDATA[
+		SELECT COUNT(*) FROM TBL_FREE_BOARD F INNER JOIN TBL_MEMBER M ON F.ID = M.ID WHERE FB_NO > 0
+		]]>
+		<include refid="search"></include>
+	</select>
+
+	<update id="updateViewCount">
+		UPDATE TBL_FREE_BOARD SET VIEWCNT = VIEWCNT +1
+		WHERE FB_NO = #{fbNo}
+	</update>
+	
+	<!-- 다중 파일 등록 -->
+	<insert id="insertFile">
+		INSERT INTO TBL_FBFILE
+		(FBFILE_NO
+		,FILENAME
+		,FB_NO)
+		VALUES
+		(CABFILE_SEQ.NEXTVAL
+		,#{filename}
+		,#{fbNo})
+	</insert>
+
+
+	<!-- 다중 파일 삭제 -->
+	<insert id="deleteFile">
+		DELETE FROM TBL_FBFILE
+		WHERE FB_NO=
+		#{fbNo}
+	</insert>
+
+
+	<!-- 파일 목록 -->
+	<select id="fileList" resultType="com.mis.domain.FbFileVO">
+		SELECT
+		FBFILE_NO
+		,SUBSTR(FILENAME, 50) AS FILENAME
+		,FILENAME AS FILE_LOCATION
+		,FB_NO
+		FROM
+		TBL_FBFILE
+		WHERE
+		FB_NO = #{fbNo}
+	</select>
+	
+	
+
+</mapper>

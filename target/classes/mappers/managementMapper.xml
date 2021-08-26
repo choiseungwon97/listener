@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.mis.mapper.ManagementMapper">
+
+	<select id="read" resultType="com.mis.domain.MemberVO">
+		SELECT * FROM TBL_MEMBER
+		WHERE ID =
+		#{id}
+	</select>
+
+	<update id="update">
+		update tbl_member set pw =#{pw},name
+		=#{name},nickname =#{nickname},stid =#{stid}
+		, major =#{major}, birth
+		=#{birth},ph =#{ph},
+		address =#{address},membersession
+		=#{memberSession},why =#{why},likegenre =#{likeGenre},artist
+		=#{artist}
+		where id = #{id}
+	</update>
+
+	<sql id="search">
+		<if test="searchType != null">
+			<if test="searchType == 'i'.toString()">
+				and id like '%' || #{keyword} || '%'
+			</if>
+			<if test="searchType == 'n'.toString()">
+				and name like '%' || #{keyword} || '%'
+			</if>
+			<if test="searchType == 'k'.toString()">
+				and nickname like '%' || #{keyword} || '%'
+			</if>
+			<if test="searchType == 'in'.toString()">
+				and (id like '%' || #{keyword} || '%')
+				OR
+				(name like
+				'%'
+				||
+				#{keyword} || '%')
+			</if>
+			<if test="searchType == 'nk'.toString()">
+				and (name like '%' || #{keyword} || '%')
+				OR
+				(nickname like
+				'%' || #{keyword} || '%')
+			</if>
+			<if test="searchType == 'ink'.toString()">
+				and (id like '%' || #{keyword} || '%')
+				OR
+				(name like
+				'%'
+				||
+				#{keyword} || '%')
+				OR
+				(nickname like '%' || #{keyword} || '%')
+			</if>
+
+
+
+		</if>
+
+
+	</sql>
+
+	<select id="listSearch" resultType="com.mis.domain.MemberVO">
+
+	<![CDATA[
+   SELECT * FROM(
+   	SELECT rownum rnum, id, pw, name, nickname, stid, major, birth, ph, address, 
+   	memberSession, why, likeGenre, artist, grade
+   	from
+   	tbl_member where rownum > 0
+	]]>
+
+		<include refid="search"></include>
+	<![CDATA[
+	order by id desc, grade desc )
+	where (rnum >= #{pageStart} AND rnum <= #{pageEnd})
+   	order by id desc, grade desc
+	]]>
+
+	</select>
+
+	<select id="listSearchCount" resultType="int">
+
+	<![CDATA[
+   SELECT COUNT(id)
+   	FROM
+   	TBL_MEMBER WHERE stid > 0
+   	]]>
+		<include refid="search"></include>
+
+
+	</select>
+
+</mapper>

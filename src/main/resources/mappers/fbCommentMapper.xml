@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+
+<mapper namespace="com.mis.mapper.FbCommentMapper">
+
+	<select id="list" resultType="com.mis.domain.FbCommentVO">
+
+		select f.fbcomm_no, f.fb_no,
+		m.id, m.nickname, f.content, f.regdate
+		from
+		tbl_fbcomment f, tbl_free_board r,
+		tbl_member m
+		where
+		m.id = f.id
+		and r.fb_no = f.fb_no
+		and f.fb_no =
+		#{fbNo}
+
+		order by f.fbcomm_no desc
+
+
+
+	</select>
+
+
+	<insert id="create">
+
+		insert into tbl_fbcomment(fbcomm_no,content, regdate, id, fb_no)
+		values
+		(FBCOMM_SEQ.NEXTVAL, #{content}, sysdate, #{id}, #{fbNo})
+
+
+	</insert>
+
+	<delete id="delete">
+		delete from tbl_fbcomment
+		where FBCOMM_NO = #{fbCommNo}
+
+	</delete>
+
+	<delete id="deleteAll">
+		DELETE FROM TBL_fbcomment
+		WHERE fb_no = #{fbNo}
+	</delete>
+
+</mapper>
+ 

@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mis.mapper.NoticeBoardMapper">
+
+
+   <!-- create -->
+   <insert id="create">
+   <selectKey keyProperty="nbNo" resultType="int" order="BEFORE">
+         SELECT NB_SEQ.NEXTVAL FROM DUAL
+      </selectKey>
+      insert into tbl_notice_board(nb_no, title, content, mustread, id)
+      values(#{nbNo}, #{title},#{content},#{mustRead}, #{id})
+   </insert>
+
+
+   <!--read -->
+   <select id="read" resultType="com.mis.domain.NoticeBoardVO">
+      select
+      n.nb_no, n.title, n.content,
+      n.regdate, n.viewcnt, n.mustread, n.id, m.nickname
+      from
+      tbl_notice_board n, tbl_member m where n.id = m.id
+      and nb_No = #{nbNo}
+   </select>
+
+
+   <!--update -->
+   <update id="update">
+      update tbl_notice_board set title =#{title},
+      content=#{content}, mustread =#{mustRead}
+      where nb_no = #{nbNo}
+   </update>
+
+
+   <!-- delete -->
+   <delete id="delete">
+      delete from tbl_notice_board where nb_no = #{nbNo}
+   </delete>
+
+
+
+
+ <sql id="search">
+
+      <if test="searchType != null">
+         <if test="searchType == 't'.toString()">
+            and title like '%' || #{keyword} || '%'
+         </if>
+
+         <if test="searchType == 'c'.toString()">
+            and content like '%' || #{keyword} || '%'
+         </if>
+
+         <if test="searchType == 'n'.toString()">
+            and nickname like '%' || #{keyword} || '%'
+         </if>
+
+         <if test="searchType == 'tc'.toString()">
+            and (title like '%' || #{keyword} || '%')
+            OR
+            (content like
+            '%' || #{keyword} || '%')
+
+         </if>
+
+         <if test="searchType == 'cn'.toString()">
+            and (content like '%' || #{keyword} || '%')
+            OR
+            (nickname
+            like'%'
+            || #{keyword} || '%')
+         </if>
+
+         <if test="searchType == 'tcn'.toString()">
+            and (title like '%' || #{keyword} || '%') OR
+            (content
+            like'%' || #{keyword} || '%') OR
+            (nickname like '%' || #{keyword} ||
+            '%')
+         </if>
+      </if>
+   </sql>
+
+
+
+
+
+   <select id="listSearch"
+      resultType="com.mis.domain.NoticeBoardVO">
+   <![CDATA[
+   SELECT * FROM (
+       SELECT rownum rnum, nb_no, title, content, regdate, viewcnt, mustread, id, nickname from (
+            SELECT n.nb_no, n.title, n.content, n.regdate, n.viewcnt, n.mustread, n.id, m.nickname
+            FROM
+            tbl_notice_board n INNER JOIN tbl_member m ON n.id = m.id
+            WHERE nb_no > 0
+    ]]>
+      <include refid="search"></include>
+    <![CDATA[
+    order by nb_no desc ))
+   where rnum >= #{pageStart} AND rnum <= #{pageEnd}
+      order by mustread desc, nb_no desc
+    ]]>
+   </select>
+
+
+   <select id="listSearchCount" resultType="int">
+   <![CDATA[
+   SELECT COUNT(NB_NO)
+      FROM
+      TBL_NOTICE_BOARD n, TBL_MEMBER m
+      WHERE n.ID = m.ID
+      AND NB_NO > 0
+    ]]>
+      <include refid="search"></include>
+
+   </select>
+   
+  
+
+
+   <update id="updateViewCount">
+      update tbl_notice_board set
+      viewcnt = viewcnt + 1
+      where nb_no
+      =
+      #{nbNo}
+   </update>
+   
+   <!-- 다중 파일 등록 -->
+   <insert id="insertFile">
+      INSERT INTO TBL_NBFILE
+      (NBFILE_NO
+      ,FILENAME
+      ,NB_NO)
+      VALUES
+      (NBFILE_SEQ.NEXTVAL
+      ,#{filename}
+      ,#{nbNo})
+   </insert>
+
+
+   <!-- 다중 파일 삭제 -->
+   <insert id="deleteFile">
+      DELETE FROM TBL_NBFILE
+      WHERE NB_NO=
+      #{nbNo}
+   </insert>
+
+
+   <!-- 파일 목록 -->
+   <select id="fileList" resultType="com.mis.domain.NbFileVO">
+      SELECT
+      NBFILE_NO
+      ,SUBSTR(FILENAME, 50) AS FILENAME
+      ,FILENAME AS FILE_LOCATION
+      ,NB_NO
+      FROM
+      TBL_NBFILE
+      WHERE
+      NB_NO = #{nbNo}
+   </select>
+   
+   
+
+</mapper>
+   
+   
